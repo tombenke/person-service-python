@@ -9,7 +9,8 @@ vars:
   OWNER: tombenke
   DOCKER_REG_USER: tombenke
   VERSION:
-    sh: git describe --tags --always --match v* ${GITHUB_REF} || echo "latest"
+    sh: git describe --tags --always  --abbrev=0 --match v* ${GITHUB_REF} | sed -e 's,.*/\(.*\),\1,'  | sed -e 's/^v//' || "latest"
+    #sh: git describe --tags --always --match v* ${GITHUB_REF} || echo "latest"
   IMAGE_TAG: "{{.VERSION}}"
   DOCKER_IMAGE_NAME: "{{.DOCKER_REG_PREFIX}}/{{.OWNER}}/{{.APPNAME}}:{{.IMAGE_TAG}}"
   DOCKER_IMAGE_NAME_LATEST: "{{.DOCKER_REG_PREFIX}}/{{.OWNER}}/{{.APPNAME}}:latest"
@@ -172,6 +173,16 @@ tasks:
     desc: Clean up docker containers
     cmds:
       - docker-compose -f docker-compose.test.yml down --volumes --remove-orphans
+
+  dc-services-up:
+    desc: Start services  docker containers
+    cmds:
+      - docker-compose -f docker-compose.services.yml up
+
+  dc-services-down:
+    desc: Clean up services docker containers
+    cmds:
+      - docker-compose -f docker-compose.services.yml down --volumes --remove-orphans
 
   venv-create:
     desc: Create a new Python Virtual Environment under the local folder

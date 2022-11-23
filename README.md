@@ -61,41 +61,64 @@ You will need the following tools installed on your machine:
 
 ## Usage
 
-List the tasks are available during the work:
-```bash
-task list
+Start the REST API gateway with the person-rest-api definition (docker-compose.test.yml):
 
-task: Available tasks for this project:
-* build: 		Build
-* clean: 		Clean temporary files and folders
-* coverage: 		Test coverage
-* dc-down: 		Clean up docker containers
-* dc-logs: 		Get all docker container logs
-* dc-logsf: 		Get all docker container logs and follow
-* dc-stop: 		Stop docker containers
-* dc-up: 		Start docker containers
-* dc-upd: 		Start docker containers in the background
-* default: 		Executes all the tests then build the binary.
-* docs: 		Generate module documentation into the docs/ folder
-* format: 		Autoformat the source files
-* install: 		Install the package and its dependencies
-* install-dev: 		Install the package and its dependencies for development
-* install-dev-editable: Install the package and its dependencies for development with editablility
-* install-git-hooks: 	Install git hooks
-* lint: 		Run python linter
-* pre-commit: 		Runs the QA tasks from a git pre-commit hook
-* publish-package: 	Publish the package to PyPI
-* test: 		Run all the tests.
-* test-verbose: 	Run all the go tests.
-* venv-create: 		Create a new Python Virtual Environment under the local folder
+```bash
+task dc-up
 ```
 
+Start the container with service implementations (docker-compose.services.yml):
+
+```bash
+task dc-services-up
+```
+
+Run the tests against the endpoints:
+
+```bash
+./test.sh
+```
+
+Or use the endpoints directly:
+
+```bash
+curl http://localhost:3007/persons/
+```
 
 ## Development
 
-TBD.
+Use the tasks are available during the work:
 
+```bash
+task list
 
+* build:                      Build a single binary application from the source code
+* build-docker:               Build docker image
+* clean:                      Clean temporary files and folders
+* coverage:                   Test coverage
+* dc-down:                    Clean up docker containers
+* dc-logs:                    Get all docker container logs
+* dc-logsf:                   Get all docker container logs and follow
+* dc-services-down:           Clean up services docker containers
+* dc-services-up:             Start services  docker containers
+* dc-stop:                    Stop docker containers
+* dc-up:                      Start docker containers
+* dc-upd:                     Start docker containers in the background
+* default:                    Executes all the tests then build the binary
+* dockerfile-lint:            Run the dockerfile linter
+* docs:                       Generate module documentation into the docs/ folder
+* format:                     Autoformat the source files
+* install:                    Install the package and its dependencies
+* install-dev:                Install the package and its dependencies for development
+* install-dev-editable:       Install the package and its dependencies for development with editability
+* install-git-hooks:          Install git hooks
+* lint:                       Run python linter
+* pre-commit:                 Runs the QA tasks from a git pre-commit hook
+* push-docker:                Push docker image
+* test:                       Run all the tests
+* test-verbose:               Run all the go tests
+* venv-create:                Create a new Python Virtual Environment under the local folder
+```
 
 ## License
 The scripts and documentation in this project are released under the [MIT License](LICENSE)
