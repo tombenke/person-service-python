@@ -1,0 +1,180 @@
+# https://taskfile.dev
+
+version: 3
+
+vars:
+  APPNAME: person-service-python
+  DEP: ./...
+  DOCKER_REG_PREFIX: ghcr.io
+  OWNER: tombenke
+  DOCKER_REG_USER: tombenke
+  VERSION:
+    sh: git describe --tags --always --match v* ${GITHUB_REF} || echo "latest"
+  IMAGE_TAG: "{{.VERSION}}"
+  DOCKER_IMAGE_NAME: "{{.DOCKER_REG_PREFIX}}/{{.OWNER}}/{{.APPNAME}}:{{.IMAGE_TAG}}"
+  DOCKER_IMAGE_NAME_LATEST: "{{.DOCKER_REG_PREFIX}}/{{.OWNER}}/{{.APPNAME}}:latest"
+  GIT_HOOKS_DIR:
+    sh: sh -c 'echo "$(pwd)/.git/hooks"'
+
+env:
+
+dotenv:
+  # Source the Container Registry credentials
+  - .env
+
+tasks:
+  default:
+    desc: Executes all the tests then build the binary
+    cmds:
+      - task: lint
+      - task: test
+      - task: docs
+
+  echo:
+    cmds:
+      - echo {{.GIT_HOOKS_DIR}}
+
+  format:
+    desc: Autoformat the source files
+    cmds:
+      - black .
+
+  test:
+    desc: Run all the tests
+    cmds:
+      - task: format
+      - task: dc-upd
+      - python -m unittest discover 
+      #- PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python python -m unittest discover 
+      - task: dc-down
+
+  test-verbose:
+    desc: Run all the go tests
+    cmds:
+      - task: dc-upd
+      - task: format
+      - python -m unittest discover -v
+      - task: dc-down
+
+  coverage:
+    desc: Test coverage
+    cmds:
+      - task: dc-upd
+      - coverage run --source=actor -m unittest discover -v
+      - coverage html
+      - coverage report
+      - coverage-badge -f -o coverage.svg
+      - task: dc-down
+
+  lint:
+    desc: Run python linter
+    cmds:
+      - task: format
+      - pylint actor/
+
+  build:
+    desc: Build a single binary application from the source code
+    cmds:
+      - rm dist/* -fr
+      - pip uninstall -y types typing
+      - pyinstaller --collect-all eventsourcing cli.py --onefile
+
+  dockerfile-lint:
+    desc: Run the dockerfile linter
+    cmds:
+      - docker run --rm -i hadolint/hadolint < Dockerfile
+
+  pre-commit:
+    desc: Runs the QA tasks from a git pre-commit hook
+    cmds:
+      - task: lint
+      - task: dockerfile-lint
+      - task: coverage
+
+  install-git-hooks:
+    desc: Install git hooks
+    cmds:
+      - echo -e "#!/bin/bash\ntask pre-commit" > ./.git/hooks/pre-commit
+      - chmod ug+x {{.GIT_HOOKS_DIR}}/pre-commit
+
+  install:
+    desc: Install the package and its dependencies
+    cmds:
+      - pip install .
+      - task: install-git-hooks
+
+  install-dev:
+    desc: Install the package and its dependencies for development
+    cmds:
+      - pip install .[dev]
+      - task: install-git-hooks
+
+  install-dev-editable:
+    desc: Install the package and its dependencies for development with editability
+    cmds:
+      - pip install -e .[dev] 
+      - task: install-git-hooks
+
+  docs:
+    desc: Generate module documentation into the docs/ folder
+    cmds:
+      - echo {{.VERSION}}
+      - pdoc -o docs ./actor/ --footer-text="{{.APPNAME}} {{.VERSION}}"
+
+  clean:
+    desc: Clean temporary files and folders
+    cmds:
+      - rm .coverage -f
+      - rm htmlcov -fr
+
+  # Docker related commands
+
+  build-docker:
+    desc: Build docker image
+    cmds:
+      - echo {{.DOCKER_IMAGE_NAME}}
+      - docker build -t {{.DOCKER_IMAGE_NAME}} .
+      - docker image tag {{.DOCKER_IMAGE_NAME}} {{.DOCKER_IMAGE_NAME_LATEST}}
+
+  push-docker:
+    desc: Push docker image
+    cmds:
+      - echo {{.DOCKER_IMAGE_NAME}}
+      - docker push {{.DOCKER_IMAGE_NAME}}
+      - docker push {{.DOCKER_IMAGE_NAME_LATEST}}
+
+  dc-up:
+    desc: Start docker containers
+    cmds:
+      - docker-compose -f docker-compose.test.yml up
+
+  dc-upd:
+    desc: Start docker containers in the background
+    cmds:
+      - docker-compose -f docker-compose.test.yml up -d
+
+  dc-stop:
+    desc: Stop docker containers
+    cmds:
+      - docker-compose stop
+
+  dc-logs:
+    desc: Get all docker container logs
+    cmds:
+      - docker-compose -f docker-compose.test.yml logs
+
+  dc-logsf:
+    desc: Get all docker container logs and follow
+    cmds:
+      - docker-compose -f docker-compose.test.yml logs -f
+
+  dc-down:
+    desc: Clean up docker containers
+    cmds:
+      - docker-compose -f docker-compose.test.yml down --volumes --remove-orphans
+
+  venv-create:
+    desc: Create a new Python Virtual Environment under the local folder
+    cmds:
+      - python3.9 -m venv ./venv
+

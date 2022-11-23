@@ -90,7 +90,6 @@ task: Available tasks for this project:
 * venv-create: 		Create a new Python Virtual Environment under the local folder
 ```
 
-TBD.
 
 ## Development
 

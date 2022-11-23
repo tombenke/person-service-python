@@ -1,0 +1,11 @@
+name: Quality Check
+
+on:
+  push:
+    branches:
+      - "*" # matches every branch
+      - "*/*" # matches every branch containing a single '/'
+
+jobs:
+  qa:
+    uses: tombenke/py-gh-actions/.github/workflows/qa.yml@master

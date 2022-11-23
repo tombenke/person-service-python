@@ -1,0 +1,37 @@
+version: "3.5"
+
+networks:
+  person-network:
+
+services:
+
+  # Start service container that implements the REST endpoint(s)
+  person-service-python:
+    container_name: person-service-python
+    image: ghcr.io/tombenke/person-service-python:latest
+    restart: on-failure
+    networks:
+      person-network:
+        aliases:
+          - person-service-python
+#    depends_on:
+#      person-rest-api:
+#        condition: service_started
+#      check-nats-ready:
+#        condition: service_completed_successfully
+    ports: []
+    volumes: []
+    environment:
+      # Set the log level of the server and its internal components:
+      # Possible values: info, debug, warn, error.
+      # Default value: info.
+      - EASER_LOG_LEVEL=debug
+
+      # Set the log format of the server and its internal components:
+      # Possible values: plainText, json.
+      # Default value: plainText.
+      - EASER_LOG_FORMAT=json
+
+      # Define the URI of the NATS server used by the messaging adapter
+      - MESSENGER_URL=nats://nats:4222
+
