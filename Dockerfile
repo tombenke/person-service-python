@@ -1,8 +1,6 @@
 FROM debian:11-slim
 RUN apt-get update && \
-    apt-get install --no-install-suggests --no-install-recommends --yes python3-venv=3.9.2-3 gcc=4:10.2.1-1 libpython3-dev=3.9.2-3 libc6 libc6-dev && \
-#RUN apt-get update && \
-#    apt-get install --no-install-suggests --no-install-recommends --yes libpython3-dev=3.9.2-3 && \
+    apt-get install --no-install-suggests --no-install-recommends --yes libpython3-dev=3.9.2-3 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
