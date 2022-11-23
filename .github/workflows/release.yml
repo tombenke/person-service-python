@@ -22,6 +22,9 @@ jobs:
       - name: Run the dockerfile linter
         run: task dockerfile-lint
 
+      - name: Run binary build task
+        run: task build
+
       - name: Run Docker build task
         run: task build-docker
 
